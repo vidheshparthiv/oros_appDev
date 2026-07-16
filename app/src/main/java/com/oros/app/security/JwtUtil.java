@@ -15,7 +15,7 @@ public class JwtUtil {
     private final Key signingKey;
     private final long expirationMs;
 
-    public JwtUtil(@Value("${jwt.secret:change_this_secret}") String secret,
+    public JwtUtil(@Value("${jwt.secret:change_this_secret_key_for_production}") String secret,
                    @Value("${jwt.expiration:86400000}") long expirationMs) {
         this.signingKey = Keys.hmacShaKeyFor(secret.getBytes());
         this.expirationMs = expirationMs;
@@ -41,7 +41,11 @@ public class JwtUtil {
     }
 
     public boolean validateToken(String token, UserDetails userDetails) {
-        String username = extractUsername(token);
-        return username != null && username.equals(userDetails.getUsername());
+        try {
+            String username = extractUsername(token);
+            return username != null && username.equals(userDetails.getUsername());
+        } catch (Exception e) {
+            return false;
+        }
     }
 }
