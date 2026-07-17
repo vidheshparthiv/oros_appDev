@@ -1,4 +1,4 @@
-package com.oros.app.model;
+package com.oros.app.model.enums;
 
 public enum Role {
     CUSTOMER,
