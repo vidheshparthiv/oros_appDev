@@ -21,6 +21,3 @@ cd app
 ./mvnw clean compile
 ./mvnw spring-boot:run
 ```
-
-## Testing
-See `app/TESTING.md` for endpoint and role-based testing instructions.
