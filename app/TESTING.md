@@ -7,10 +7,15 @@
   ./mvnw clean compile
   ./mvnw spring-boot:run
   ```
+- Open Swagger UI at: `http://localhost:8080/swagger-ui/index.html`
 - Base URL: `http://localhost:8080`
-- Headers for protected endpoints:
-  - `Content-Type: application/json`
-  - `Authorization: Bearer <token>`
+- Important: every protected endpoint (`/api/**`) requires a valid JWT in the `Authorization` header.
+- If you get `401 Unauthorized` in Swagger, it usually means one of these is missing:
+  - a valid `Authorization: Bearer <token>` header
+  - a token from `/auth/login`
+  - a fresh token after the previous one expired
+  - a user whose role matches the endpoint requirement (`ADMIN`, `VENDOR`, or `CUSTOMER`)
+- In Swagger, use the `Authorize` button at the top right and enter the token as: `Bearer <token>`
 
 ## Roles
 - `CUSTOMER` — can search products and place orders
@@ -19,12 +24,13 @@
 
 ## Auth
 ### Register
-`POST /auth/register`
+Use the `AuthController` → `POST /auth/register` endpoint in Swagger.
 
 Request body:
 ```json
 {
   "username": "user1",
+  "email": "user1@example.com",
   "password": "pass123",
   "role": "CUSTOMER"
 }
@@ -38,7 +44,7 @@ Response:
 ```
 
 ### Login
-`POST /auth/login`
+Use the `AuthController` → `POST /auth/login` endpoint in Swagger.
 
 Request body:
 ```json
@@ -55,6 +61,8 @@ Response:
 }
 ```
 
+Copy the returned token and paste it into Swagger’s `Authorize` dialog as `Bearer <token>`.
+
 ## Product endpoints
 ### Get all products
 `GET /api/products`
@@ -63,7 +71,7 @@ Response:
 `GET /api/products/{id}`
 
 ### Add product
-`POST /api/products`
+Use the `ProductController` → `POST /api/products` endpoint in Swagger.
 - Role: `VENDOR`, `ADMIN`
 
 Request body:
@@ -80,19 +88,32 @@ Request body:
 ```
 
 ### Update product
-`PUT /api/products/{id}`
+Use `PUT /api/products/{id}`.
 - Role: `VENDOR`, `ADMIN`
 
+Request body:
+```json
+{
+  "name": "Updated Keyboard",
+  "description": "Mechanical keyboard updated",
+  "price": 169.99,
+  "stock": 15,
+  "vendor": {
+    "id": 2
+  }
+}
+```
+
 ### Delete product
-`DELETE /api/products/{id}`
+Use `DELETE /api/products/{id}`.
 - Role: `VENDOR`, `ADMIN`
 
 ### Delete all products
-`DELETE /api/products`
+Use `DELETE /api/products`.
 - Role: `ADMIN`
 
 ### Get products by vendor
-`GET /api/products/vendor/{vendorId}`
+Use `GET /api/products/vendor/{vendorId}`.
 
 ## Vendor endpoints
 ### Get all vendors
@@ -104,7 +125,7 @@ Request body:
 - Role: `VENDOR`, `ADMIN`
 
 ### Add vendor
-`POST /api/vendors`
+Use the `VendorController` → `POST /api/vendors` endpoint in Swagger.
 - Role: `ADMIN`
 
 Request body:
@@ -115,15 +136,22 @@ Request body:
 ```
 
 ### Update vendor
-`PUT /api/vendors/{id}`
+Use `PUT /api/vendors/{id}`.
 - Role: `ADMIN`
 
+Request body:
+```json
+{
+  "name": "Updated ElectroHub"
+}
+```
+
 ### Delete vendor
-`DELETE /api/vendors/{id}`
+Use `DELETE /api/vendors/{id}`.
 - Role: `ADMIN`
 
 ### Delete all vendors
-`DELETE /api/vendors`
+Use `DELETE /api/vendors`.
 - Role: `ADMIN`
 
 ## Order endpoints
@@ -136,7 +164,7 @@ Request body:
 - Role: `CUSTOMER`, `VENDOR`, `ADMIN`
 
 ### Create order
-`POST /api/orders`
+Use the `OrderController` → `POST /api/orders` endpoint in Swagger.
 - Role: `CUSTOMER`
 
 Request body:
@@ -145,10 +173,21 @@ Request body:
   "customer": {
     "id": 2
   },
-  "totalPrice": 1049.98,
+  "items": [
+    {
+      "product": {
+        "id": 1
+      },
+      "quantity": 2,
+      "unitPrice": 10.5
+    }
+  ],
   "status": "PENDING"
 }
 ```
+
+### Note about Swagger schema
+The current `Vendor` model only contains `id` and `name`, so Swagger should not show a `products` array for vendor payloads. If you see one, it is likely from an older schema cached in the browser or from a stale Swagger UI session.
 
 ### Recommended tests
 1. Register and login as `ADMIN`.

@@ -39,7 +39,6 @@ public class VendorController {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Vendor> addVendor(@RequestBody Vendor vendor) {
         Vendor created = vendorService.addVendor(vendor);
         return new ResponseEntity<>(created, HttpStatus.CREATED);

@@ -14,9 +14,6 @@ public class Vendor {
 
     private String name;
 
-    @OneToMany(mappedBy = "vendor", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference("vendor-products")
-    private List<Product> products;
 
     public Vendor() {
     }
@@ -41,11 +38,4 @@ public class Vendor {
         this.name = name;
     }
 
-    public List<Product> getProducts() {
-        return products;
-    }
-
-    public void setProducts(List<Product> products) {
-        this.products = products;
-    }
 }

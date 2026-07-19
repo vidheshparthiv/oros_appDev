@@ -36,14 +36,16 @@ public class OrderController {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<Order> addOrder(@RequestBody Order order) {
-        Order created = orderService.addOrder(order);
-        return new ResponseEntity<>(created, HttpStatus.CREATED);
+        try {
+            Order created = orderService.addOrder(order);
+            return new ResponseEntity<>(created, HttpStatus.CREATED);
+        } catch (IllegalArgumentException ex) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
     }
 
     @GetMapping("/customer/{customerId}")
-    @PreAuthorize("hasAnyRole('CUSTOMER','ADMIN')")
     public ResponseEntity<List<Order>> getByCustomerId(@PathVariable Long customerId) {
         List<Order> orders = orderService.getOrdersByCustomerId(customerId);
         return new ResponseEntity<>(orders, HttpStatus.OK);

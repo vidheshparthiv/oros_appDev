@@ -40,7 +40,7 @@ public class AuthService {
         } catch (Exception ignored) {
         }
 
-        User u = new User(req.getUsername(), passwordEncoder.encode(req.getPassword()), role);
+        User u = new User(req.getUsername(), req.getEmail(), passwordEncoder.encode(req.getPassword()), role);
         userRepository.save(u);
         return new AuthResponse(null, "registered successful");
     }
