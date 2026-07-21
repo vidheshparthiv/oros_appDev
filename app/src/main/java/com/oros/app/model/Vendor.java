@@ -2,6 +2,8 @@ package com.oros.app.model;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
+
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -13,8 +15,11 @@ public class Vendor {
     private Long id;
 
     private String name;
-
-
+    
+    @OneToMany(mappedBy = "vendor", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @JsonManagedReference
+    private List<Product> products = new ArrayList<>();
+    
     public Vendor() {
     }
 
@@ -36,6 +41,24 @@ public class Vendor {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public List<Product> getProducts() {
+        return products;
+    }
+
+    public void setProducts(List<Product> products) {
+        this.products = products;
+    }
+
+    public void addProduct(Product product) {
+        products.add(product);
+        product.setVendor(this);
+    }
+
+    public void removeProduct(Product product) {
+        products.remove(product);
+        product.setVendor(null);
     }
 
 }
