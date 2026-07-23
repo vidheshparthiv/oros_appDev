@@ -60,7 +60,6 @@ public class ProductService {
         productRepository.deleteById(id);
         return product.get();
     }
-
     public void deleteAllProducts() {
         productRepository.deleteAll();
     }
