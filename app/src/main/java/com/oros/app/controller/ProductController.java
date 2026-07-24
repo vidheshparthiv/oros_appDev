@@ -34,10 +34,13 @@ public class ProductController {
         return new ResponseEntity<>(product.get(), HttpStatus.OK);
     }
 
-    @PostMapping
+    @PostMapping("/{vendorId}")
     @PreAuthorize("hasAnyRole('VENDOR', 'ADMIN')")
-    public ResponseEntity<Product> addProduct(@RequestBody Product product) {
-        Product created = productService.addProduct(product);
+    public ResponseEntity<Product> addProduct(@PathVariable Long vendorId, @RequestBody Product product) {
+        Product created = productService.addProduct(vendorId, product);
+        if (created == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
         return new ResponseEntity<>(created, HttpStatus.CREATED);
     }
 

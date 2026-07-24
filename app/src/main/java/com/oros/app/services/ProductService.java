@@ -1,7 +1,9 @@
 package com.oros.app.services;
 
 import com.oros.app.model.Product;
+import com.oros.app.model.Vendor;
 import com.oros.app.repository.ProductRepository;
+import com.oros.app.repository.VendorRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -13,9 +15,11 @@ import java.util.Optional;
 @Service
 public class ProductService {
     private final ProductRepository productRepository;
+    private final VendorRepository vendorRepository;
 
-    public ProductService(ProductRepository productRepository) {
+    public ProductService(ProductRepository productRepository, VendorRepository vendorRepository) {
         this.productRepository = productRepository;
+        this.vendorRepository = vendorRepository;
     }
 
     public List<Product> getAll() {
@@ -27,6 +31,15 @@ public class ProductService {
     }
 
     public Product addProduct(Product product) {
+        return productRepository.save(product);
+    }
+
+    public Product addProduct(Long vendorId, Product product) {
+        Optional<Vendor> vendorOptional = vendorRepository.findById(vendorId);
+        if (vendorOptional.isEmpty()) {
+            return null;
+        }
+        product.setVendor(vendorOptional.get());
         return productRepository.save(product);
     }
 
@@ -47,7 +60,6 @@ public class ProductService {
         productRepository.deleteById(id);
         return product.get();
     }
-
     public void deleteAllProducts() {
         productRepository.deleteAll();
     }
