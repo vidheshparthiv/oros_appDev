@@ -67,18 +67,16 @@ public class ProductService {
     public List<Product> getAllProductsSorted(String field) {
         return productRepository.findAll(Sort.by(field));
     }
-
     public List<Product> getByPages(int page, int size) {
         Page<Product> result = productRepository.findAll(PageRequest.of(page, size));
         return result.getContent();
     }
-
     public List<Product> getByPagesAndSorted(int page, int size, String field) {
         Page<Product> result = productRepository.findAll(PageRequest.of(page, size, Sort.by(field)));
         return result.getContent();
     }
-
     public List<Product> getProductsByVendorId(Long vendorId) {
         return productRepository.findByVendorId(vendorId);
     }
+    
 }

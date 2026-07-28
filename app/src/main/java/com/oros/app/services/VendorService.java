@@ -51,7 +51,7 @@ public class VendorService {
     public void deleteAllVendors() {
         vendorRepository.deleteAll();
     }
-
+    
     public List<Vendor> getAllVendorsSorted(String field) {
         return vendorRepository.findAll(Sort.by(field));
     }
