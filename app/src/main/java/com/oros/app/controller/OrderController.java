@@ -3,6 +3,7 @@ package com.oros.app.controller;
 import com.oros.app.model.Order;
 import com.oros.app.model.enums.OrderStatus;
 import com.oros.app.services.OrderService;
+import com.oros.app.services.OrderItemService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -16,9 +17,11 @@ import java.util.Optional;
 @PreAuthorize("hasAnyRole('CUSTOMER','VENDOR','ADMIN')")
 public class OrderController {
     private final OrderService orderService;
+    private final OrderItemService orderItemService;
 
-    public OrderController(OrderService orderService) {
+    public OrderController(OrderService orderService, OrderItemService orderItemService) {
         this.orderService = orderService;
+        this.orderItemService = orderItemService;
     }
 
     @GetMapping
@@ -99,6 +102,24 @@ public class OrderController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteAllOrders() {
         orderService.deleteAllOrders();
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @PostMapping("/{id}/place")
+    @PreAuthorize("hasRole('CUSTOMER')")
+    public ResponseEntity<Order> placeOrder(@PathVariable Long id) {
+        Order updated = orderService.updateOrderStatus(id, OrderStatus.CONFIRMED);
+        if (updated == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(updated, HttpStatus.OK);
+    }
+
+    @PostMapping("/{id}/attach-items")
+    @PreAuthorize("hasRole('CUSTOMER')")
+    public ResponseEntity<Void> attachItems(@PathVariable Long id, @RequestBody java.util.List<Long> itemIds) {
+        boolean ok = orderItemService.attachItemsToOrder(id, itemIds);
+        if (!ok) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }

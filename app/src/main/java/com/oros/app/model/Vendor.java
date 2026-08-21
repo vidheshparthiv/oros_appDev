@@ -15,7 +15,7 @@ public class Vendor {
     private Long id;
 
     private String name;
-    
+
     @OneToMany(mappedBy = "vendor", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonManagedReference
     private List<Product> products = new ArrayList<>();
