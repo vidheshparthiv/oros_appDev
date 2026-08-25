@@ -1,42 +1,55 @@
 import { Link, useNavigate } from 'react-router-dom'
-import { useEffect, useState } from 'react'
-import auth from '../services/auth'
 
 export default function NavBar() {
   const navigate = useNavigate()
-  const [isAuth, setIsAuth] = useState(auth.isAuthenticated())
-  const [role, setRole] = useState(auth.getUserRole())
+  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+  const role = typeof window !== 'undefined' ? (localStorage.getItem('role') || '') : ''
 
   const handleLogout = () => {
-    auth.logout()
-    navigate('/login')
+    localStorage.removeItem('token')
+    localStorage.removeItem('role')
+    navigate('/')
   }
 
-  useEffect(() => {
-    function onAuthChanged() {
-      setIsAuth(auth.isAuthenticated())
-      setRole(auth.getUserRole())
-    }
-    window.addEventListener('authChanged', onAuthChanged)
-    // also update on mount
-    onAuthChanged()
-    return () => window.removeEventListener('authChanged', onAuthChanged)
-  }, [])
-
   return (
-    <nav className="nav">
-      <Link to="/">Home</Link>
-      {isAuth ? (
-        <>
-          {role === 'customer' && <Link to="/products">Products</Link>}
-          <button onClick={handleLogout}>Logout</button>
-        </>
-      ) : (
-        <>
-          <Link to="/login">Login</Link>
-          <Link to="/register">Register</Link>
-        </>
-      )}
+    <nav className="app-nav">
+      <div className="nav-left">
+        <Link to="/">Home</Link>
+      </div>
+
+      <div className="nav-right">
+        {!token ? (
+          <>
+            <button className="link-btn" onClick={() => navigate('/?tab=login')}>Login</button>
+            <button className="link-btn" onClick={() => navigate('/?tab=register')}>Register</button>
+          </>
+        ) : (
+          <>
+            {role === 'CUSTOMER' && (
+              <>
+                <Link to="/customer/products" className="link-btn">Products</Link>
+                <Link to="/customer/orders" className="link-btn">Orders</Link>
+                <Link to="/customer/profile" className="link-btn">Profile</Link>
+              </>
+            )}
+            {role === 'VENDOR' && (
+              <>
+                <Link to="/vendor/orders" className="link-btn">Orders</Link>
+                <Link to="/vendor/products" className="link-btn">Products</Link>
+                <Link to="/vendor/add-product" className="link-btn">Add Product</Link>
+              </>
+            )}
+            {role === 'ADMIN' && (
+              <>
+                <Link to="/admin/users" className="link-btn">Users</Link>
+                <Link to="/admin/orders" className="link-btn">Orders</Link>
+                <Link to="/admin/add-user" className="link-btn">Add User</Link>
+              </>
+            )}
+            <button className="secondary-btn" onClick={handleLogout}>Logout</button>
+          </>
+        )}
+      </div>
     </nav>
   )
 }

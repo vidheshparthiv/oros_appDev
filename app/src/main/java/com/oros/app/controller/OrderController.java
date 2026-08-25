@@ -45,6 +45,13 @@ public class OrderController {
         return new ResponseEntity<>(orders, HttpStatus.OK);
     }
 
+    @GetMapping("/vendor/{vendorId}")
+    @PreAuthorize("hasAnyRole('VENDOR', 'ADMIN')")
+    public ResponseEntity<List<Order>> getByVendorId(@PathVariable Long vendorId) {
+        List<Order> orders = orderService.getOrdersForVendor(vendorId);
+        return new ResponseEntity<>(orders, HttpStatus.OK);
+    }
+
     @GetMapping("/status/{status}")
     @PreAuthorize("hasAnyRole('VENDOR', 'ADMIN')")
     public ResponseEntity<List<Order>> getByStatus(@PathVariable String status) {
@@ -85,6 +92,8 @@ public class OrderController {
             return new ResponseEntity<>(updated, HttpStatus.OK);
         } catch (IllegalArgumentException e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        } catch (IllegalStateException e) {
+            return new ResponseEntity<>(HttpStatus.CONFLICT);
         }
     }
 
@@ -108,11 +117,15 @@ public class OrderController {
     @PostMapping("/{id}/place")
     @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<Order> placeOrder(@PathVariable Long id) {
-        Order updated = orderService.updateOrderStatus(id, OrderStatus.CONFIRMED);
-        if (updated == null) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        try {
+            Order updated = orderService.updateOrderStatus(id, OrderStatus.CONFIRMED);
+            if (updated == null) {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+            return new ResponseEntity<>(updated, HttpStatus.OK);
+        } catch (IllegalStateException e) {
+            return new ResponseEntity<>(HttpStatus.CONFLICT);
         }
-        return new ResponseEntity<>(updated, HttpStatus.OK);
     }
 
     @PostMapping("/{id}/attach-items")

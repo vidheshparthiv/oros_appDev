@@ -2,6 +2,10 @@ package com.oros.app.controller;
 
 import com.oros.app.model.Product;
 import com.oros.app.services.ProductService;
+import com.oros.app.services.VendorService;
+import com.oros.app.services.UserService;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -14,13 +18,32 @@ import java.util.Optional;
 @RequestMapping("/api/products")
 public class ProductController {
     private final ProductService productService;
+    private final VendorService vendorService;
+    private final UserService userService;
 
-    public ProductController(ProductService productService) {
+    public ProductController(ProductService productService, VendorService vendorService, UserService userService) {
         this.productService = productService;
+        this.vendorService = vendorService;
+        this.userService = userService;
     }
 
     @GetMapping
     public ResponseEntity<List<Product>> getAll() {
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_VENDOR"))) {
+            String username = auth.getName();
+            try {
+                var user = userService.getUserByUsername(username);
+                var vendorOpt = vendorService.getVendorByUserId(user.getId());
+                if (vendorOpt.isPresent()) {
+                    List<Product> products = productService.getProductsByVendorId(vendorOpt.get().getId());
+                    return new ResponseEntity<>(products, HttpStatus.OK);
+                }
+                return new ResponseEntity<>(List.of(), HttpStatus.OK);
+            } catch (Exception ex) {
+                return new ResponseEntity<>(List.of(), HttpStatus.OK);
+            }
+        }
         List<Product> products = productService.getAll();
         return new ResponseEntity<>(products, HttpStatus.OK);
     }
@@ -91,6 +114,12 @@ public class ProductController {
     @GetMapping("/vendor/{vendorId}")
     public ResponseEntity<List<Product>> getByVendorId(@PathVariable Long vendorId) {
         List<Product> products = productService.getProductsByVendorId(vendorId);
+        return new ResponseEntity<>(products, HttpStatus.OK);
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<Product>> searchByName(@RequestParam(required = false) String q) {
+        List<Product> products = productService.searchByName(q);
         return new ResponseEntity<>(products, HttpStatus.OK);
     }
 }

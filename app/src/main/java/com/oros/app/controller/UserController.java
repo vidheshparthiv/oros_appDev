@@ -31,8 +31,15 @@ public class UserController {
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<User> createUser(@RequestBody User user) {
-        User created = userService.createUser(user);
-        return new ResponseEntity<>(created, HttpStatus.CREATED);
+        try {
+            User created = userService.createUser(user);
+            return new ResponseEntity<>(created, HttpStatus.CREATED);
+        } catch (org.springframework.dao.DataIntegrityViolationException ex) {
+            // likely duplicate username or email
+            return new ResponseEntity<>(HttpStatus.CONFLICT);
+        } catch (Exception ex) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
     }
 
     // get all users

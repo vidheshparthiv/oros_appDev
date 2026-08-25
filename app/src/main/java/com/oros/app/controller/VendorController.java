@@ -14,9 +14,11 @@ import java.util.Optional;
 @RequestMapping("/api/vendors")
 public class VendorController {
     private final VendorService vendorService;
+    private final com.oros.app.services.UserService userService;
 
-    public VendorController(VendorService vendorService) {
+    public VendorController(VendorService vendorService, com.oros.app.services.UserService userService) {
         this.vendorService = vendorService;
+        this.userService = userService;
     }
 
     //get all vendors
@@ -38,10 +40,78 @@ public class VendorController {
         return new ResponseEntity<>(vendor.get(), HttpStatus.OK);
     }
 
+    @GetMapping("/me")
+    @PreAuthorize("hasRole('VENDOR')")
+    public ResponseEntity<Vendor> getCurrentVendor() {
+        // fetch authenticated username from security context
+        String username = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName();
+        Long userId;
+        try {
+            var user = userService.getUserByUsername(username);
+            userId = user.getId();
+        } catch (Exception ex) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        var vendorOpt = vendorService.getVendorByUserId(userId);
+        if (vendorOpt.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(vendorOpt.get(), HttpStatus.OK);
+    }
+
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Vendor> addVendor(@RequestBody Vendor vendor) {
-            System.out.println("POST HIT");
+        if (vendor == null || vendor.getUser() == null) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+
+        var u = vendor.getUser();
+        u.setRole(com.oros.app.model.enums.Role.VENDOR);
+        if (u.getId() != null) {
+            try {
+                var existing = userService.getById(u.getId());
+                existing.setRole(com.oros.app.model.enums.Role.VENDOR);
+                userService.createUser(existing);
+                vendor.setUser(existing);
+            } catch (Exception ex) {
+                var createdUser = userService.createUser(u);
+                vendor.setUser(createdUser);
+            }
+        } else {
+            var createdUser = userService.createUser(u);
+            vendor.setUser(createdUser);
+        }
+
+        Vendor created = vendorService.addVendor(vendor);
+        return new ResponseEntity<>(created, HttpStatus.CREATED);
+    }
+
+    @PostMapping("/me")
+    @PreAuthorize("hasRole('VENDOR')")
+    public ResponseEntity<Vendor> createMyVendor(@RequestBody Vendor vendor) {
+        String username = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName();
+        com.oros.app.model.User user;
+        try {
+            user = userService.getUserByUsername(username);
+        } catch (Exception ex) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+
+        if (vendor == null) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+
+        user.setRole(com.oros.app.model.enums.Role.VENDOR);
+        userService.createUser(user);
+
+        var existingVendor = vendorService.getVendorByUserId(user.getId());
+        if (existingVendor.isPresent()) {
+            return new ResponseEntity<>(existingVendor.get(), HttpStatus.OK);
+        }
+
+        vendor.setUser(user);
+
         Vendor created = vendorService.addVendor(vendor);
         return new ResponseEntity<>(created, HttpStatus.CREATED);
     }

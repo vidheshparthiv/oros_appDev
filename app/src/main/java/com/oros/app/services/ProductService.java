@@ -26,6 +26,10 @@ public class ProductService {
         return productRepository.findAll();
     }
 
+    public List<Product> getProductsByVendorId(Long vendorId) {
+        return productRepository.findByVendorId(vendorId);
+    }
+
     public Optional<Product> getProductById(Long id) {
         return productRepository.findById(id);
     }
@@ -75,8 +79,11 @@ public class ProductService {
         Page<Product> result = productRepository.findAll(PageRequest.of(page, size, Sort.by(field)));
         return result.getContent();
     }
-    public List<Product> getProductsByVendorId(Long vendorId) {
-        return productRepository.findByVendorId(vendorId);
+
+
+    public List<Product> searchByName(String q) {
+        if (q == null || q.isBlank()) return getAll();
+        return productRepository.findByNameContainingIgnoreCase(q.trim());
     }
     
 }
