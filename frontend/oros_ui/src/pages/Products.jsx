@@ -5,7 +5,6 @@ import {
   createOrder,
   getCurrentUser,
   searchProducts,
-  placeOrder as apiPlaceOrder,
 } from '../api/customerApi'
 
 function Products() {
@@ -94,7 +93,6 @@ function Products() {
       })
       const order = orderRes.data
       await Promise.all(cart.map((it) => addOrderItem({ orderId: order.id, productId: it.id, quantity: it.quantity })))
-      await apiPlaceOrder(order.id)
       setCart([])
       setCheckoutStep('catalog')
       setAddress({ addressLine1: '', addressLine2: '', city: '', state: '' })
@@ -160,7 +158,7 @@ function Products() {
             <div className="pager-row">
               <button onClick={() => setPage((p) => Math.max(0, p - 1))}>Prev</button>
               <span>Page {page + 1}</span>
-              <button onClick={() => setPage((p) => p + 1)}>Next</button>
+              <button onClick={() => setPage((p) => p + 1)} color='black'>Next</button>
             </div>
           </div>
 
@@ -173,7 +171,7 @@ function Products() {
                     <span className="category-pill">{p.category || 'General'}</span>
                   </div>
                   <p>{p.description}</p>
-                  <div>Price: ${Number(p.price || 0).toFixed(2)}</div>
+                  <div>Price: ${Number(p.price||0).toFixed(2)}</div>
                   <div>Stock: {p.stock}</div>
                   <div className="product-actions">
                     <button onClick={() => addToCart(p, 1)}>Add</button>
