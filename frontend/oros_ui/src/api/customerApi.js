@@ -35,6 +35,7 @@ export const getVendorProducts = (vendorId) =>
   api.get(`/api/products/vendor/${vendorId}`);
 
 export const getCurrentVendor = () => api.get('/api/vendors/me');
+
 export const createMyVendor = (payload) => api.post('/api/vendors/me', payload);
 
 export const addProduct = (vendorId, payload) =>
