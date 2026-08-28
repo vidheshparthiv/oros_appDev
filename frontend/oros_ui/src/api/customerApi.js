@@ -1,17 +1,14 @@
 import api from './axios';
 
-export const getAllProducts = (page = 0, size = 10) =>
-  api.get(`/api/products/page/${page}/${size}`);
+export const getAllProducts = (page = 0, size = 10) => api.get(`/api/products/page/${page}/${size}`);
 
 export const searchProducts = (q) => api.get(`/api/products/search?q=${encodeURIComponent(q || '')}`);
 
 export const getCurrentUser = () => api.get('/users/me');
 
-export const getCustomerOrders = (customerId) =>
-  api.get(`/api/orders/customer/${customerId}`);
+export const getCustomerOrders = (customerId) => api.get(`/api/orders/customer/${customerId}`);
 
-export const getVendorOrders = (vendorId) =>
-  api.get(`/api/orders/vendor/${vendorId}`);
+export const getVendorOrders = (vendorId) => api.get(`/api/orders/vendor/${vendorId}`);
 
 export const updateOrderStatus = (orderId, status) =>
   api.patch(`/api/orders/${orderId}/status?status=${encodeURIComponent(status)}`);
