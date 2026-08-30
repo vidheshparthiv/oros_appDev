@@ -136,6 +136,7 @@ function Products() {
             </div>
 
             <div className="cart-total">
+              
               <span>Total</span>
               <strong>{Number(total).toFixed(2)}</strong>
             </div>
