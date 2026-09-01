@@ -26,6 +26,10 @@ public class VendorService {
         return vendorRepository.findById(id);
     }
 
+    public Optional<Vendor> getVendorByUserId(Long userId) {
+        return vendorRepository.findByUserId(userId);
+    }
+
     public Vendor addVendor(Vendor vendor) {
         return vendorRepository.save(vendor);
     }

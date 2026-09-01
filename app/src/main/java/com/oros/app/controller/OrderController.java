@@ -1,7 +1,9 @@
 package com.oros.app.controller;
 
 import com.oros.app.model.Order;
+import com.oros.app.model.enums.OrderStatus;
 import com.oros.app.services.OrderService;
+import com.oros.app.services.OrderItemService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -15,9 +17,11 @@ import java.util.Optional;
 @PreAuthorize("hasAnyRole('CUSTOMER','VENDOR','ADMIN')")
 public class OrderController {
     private final OrderService orderService;
+    private final OrderItemService orderItemService;
 
-    public OrderController(OrderService orderService) {
+    public OrderController(OrderService orderService, OrderItemService orderItemService) {
         this.orderService = orderService;
+        this.orderItemService = orderItemService;
     }
 
     @GetMapping
@@ -39,5 +43,96 @@ public class OrderController {
     public ResponseEntity<List<Order>> getByCustomerId(@PathVariable Long customerId) {
         List<Order> orders = orderService.getOrdersByCustomerId(customerId);
         return new ResponseEntity<>(orders, HttpStatus.OK);
+    }
+
+    @GetMapping("/vendor/{vendorId}")
+    @PreAuthorize("hasAnyRole('VENDOR', 'ADMIN')")
+    public ResponseEntity<List<Order>> getByVendorId(@PathVariable Long vendorId) {
+        List<Order> orders = orderService.getOrdersForVendor(vendorId);
+        return new ResponseEntity<>(orders, HttpStatus.OK);
+    }
+
+    @GetMapping("/status/{status}")
+    @PreAuthorize("hasAnyRole('VENDOR', 'ADMIN')")
+    public ResponseEntity<List<Order>> getByStatus(@PathVariable String status) {
+        try {
+            OrderStatus orderStatus = OrderStatus.valueOf(status.toUpperCase());
+            return new ResponseEntity<>(orderService.getOrdersByStatus(orderStatus), HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @PostMapping
+    @PreAuthorize("hasRole('CUSTOMER')")
+    public ResponseEntity<Order> createOrder(@RequestBody Order order) {
+        Order created = orderService.addOrder(order);
+        return new ResponseEntity<>(created, HttpStatus.CREATED);
+    }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('CUSTOMER') || hasRole('ADMIN')")
+    public ResponseEntity<Order> updateOrder(@PathVariable Long id, @RequestBody Order order) {
+        Order updated = orderService.updateOrder(id, order);
+        if (updated == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(updated, HttpStatus.OK);
+    }
+
+    @PatchMapping("/{id}/status")
+    @PreAuthorize("hasAnyRole('VENDOR', 'ADMIN')")
+    public ResponseEntity<Order> updateOrderStatus(@PathVariable Long id, @RequestParam String status) {
+        try {
+            OrderStatus orderStatus = OrderStatus.valueOf(status.toUpperCase());
+            Order updated = orderService.updateOrderStatus(id, orderStatus);
+            if (updated == null) {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+            return new ResponseEntity<>(updated, HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        } catch (IllegalStateException e) {
+            return new ResponseEntity<>(HttpStatus.CONFLICT);
+        }
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Order> deleteOrder(@PathVariable Long id) {
+        Order deleted = orderService.deleteOrder(id);
+        if (deleted == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(deleted, HttpStatus.OK);
+    }
+
+    @DeleteMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> deleteAllOrders() {
+        orderService.deleteAllOrders();
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @PostMapping("/{id}/place")
+    @PreAuthorize("hasRole('CUSTOMER')")
+    public ResponseEntity<Order> placeOrder(@PathVariable Long id) {
+        try {
+            Order updated = orderService.updateOrderStatus(id, OrderStatus.CONFIRMED);
+            if (updated == null) {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+            return new ResponseEntity<>(updated, HttpStatus.OK);
+        } catch (IllegalStateException e) {
+            return new ResponseEntity<>(HttpStatus.CONFLICT);
+        }
+    }
+
+    @PostMapping("/{id}/attach-items")
+    @PreAuthorize("hasRole('CUSTOMER')")
+    public ResponseEntity<Void> attachItems(@PathVariable Long id, @RequestBody java.util.List<Long> itemIds) {
+        boolean ok = orderItemService.attachItemsToOrder(id, itemIds);
+        if (!ok) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }

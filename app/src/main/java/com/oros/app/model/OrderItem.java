@@ -13,8 +13,8 @@ public class OrderItem {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "order_id", nullable = false)
-    @JsonIgnore
+    @JoinColumn(name = "order_id")
+    @com.fasterxml.jackson.annotation.JsonBackReference
     private Order order;
 
     @ManyToOne(fetch = FetchType.LAZY)

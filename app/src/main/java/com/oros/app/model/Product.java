@@ -17,6 +17,8 @@ public class Product {
     @Column(columnDefinition = "TEXT")
     private String description;
 
+    private String category;
+
     private BigDecimal price;
 
     private Integer stock;
@@ -29,9 +31,10 @@ public class Product {
     public Product() {
     }
 
-    public Product(String name, String description, BigDecimal price, Integer stock, Vendor vendor) {
+    public Product(String name, String description, String category, BigDecimal price, Integer stock, Vendor vendor) {
         this.name = name;
         this.description = description;
+        this.category = category;
         this.price = price;
         this.stock = stock;
         this.vendor = vendor;
@@ -59,6 +62,14 @@ public class Product {
 
     public void setDescription(String description) {
         this.description=description;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
     }
 
     public BigDecimal getPrice() {
