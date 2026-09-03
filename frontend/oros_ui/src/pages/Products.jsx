@@ -139,7 +139,6 @@ function Products() {
               <span>Total</span>
               <strong>{Number(total).toFixed(2)}</strong>
             </div>
-
             <button type="submit" className="primary-btn full-width-btn">Place Order</button>
           </form>
         </div>
