@@ -134,7 +134,6 @@ function Products() {
                 <input value={address.state} onChange={(e) => setAddress({ ...address, state: e.target.value })} required />
               </label>
             </div>
-
             <div className="cart-total">
               <span>Total</span>
               <strong>{Number(total).toFixed(2)}</strong>
