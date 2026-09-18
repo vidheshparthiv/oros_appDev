@@ -256,7 +256,6 @@ function CustomerDashboard() {
           <div className="panel-header">
             <h2>Cart</h2>
           </div>
-
           {cart.length === 0 ? (
             <p className="empty-text">No items in cart yet.</p>
           ) : (
